@@ -10,18 +10,20 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 });
 
 Given('I am logged in as an Admin', () => {
-    var email='lester@gmail.com';
+    var email = 'lester@gmail.com';
     var password = 'password';
     cy.visit('http://127.0.0.1:8000/login');
-    login.enterCredentials(email,password)
+    login.enterCredentials(email, password)
     login.clickLogin()
     login.successLogin()
 });
 Given('I navigated to Item page', () => {
     item.navigateItemPage();
 });
-When ('I click the Create button', () => {
+When('I click the Create button', () => {
     item.triggerCreateButton();
+
+    item.validateModalVisible();
 });
 When('I enter the required details, {}, {}', (itemName, itemCode) => {
     item.inputItemDetails(itemName, itemCode);
@@ -29,7 +31,7 @@ When('I enter the required details, {}, {}', (itemName, itemCode) => {
 When('I click the Submit button', () => {
     item.triggerSubmit();
 });
-Then ('I should see a success message, {}', (message) => {
+Then('I should see a success message, {}', (message) => {
     item.successMessage(message);
 });
 Then('the item should be added on the table', () => {
@@ -45,7 +47,7 @@ Given('the user has existing item, {}, {}', (itemName, itemCode) => {
     item.inputItemDetails(itemName, itemCode);
     item.triggerSubmit();
 
-    item.validateModalNotVisible()
+    item.validateModalNotVisible();
     item.getItemIndexThruCode();
 });
 When('I click the edit button of the item', () => {
@@ -56,6 +58,34 @@ When('I enter the new details, {}, {}', (newItemName, newItemCode) => {
 });
 Then('the new details should reflect on the table', () => {
     item.validateItemUpdateData();
+
+    item.deleteItemThruItemCode();
+});
+
+//Scenario Outline: I should be able to delete an Item
+When('I delete the item', () => {
+    item.deleteItemThruItemCode();
+});
+Then('the item should not be visible on the item table', () => {
+    item.itemIsNotVisibleOnTable();
+});
+
+//Scenario Outline: Deleted item should be move to deleted item page
+When('I navigate to Delete Item page', () => {
+    item.navigateToDeletedItem();
+    item.assertHeaderTwo('Deleted Item');
+});
+Then('I should see the item I deleted', () => {
+    item.getItemIndexThruCode();
+    item.itemIsVisibleOnTable();
+});
+
+//Scenario Outline: I should not be able to add Item that code already exists
+When('I enter the same details with the existing item, {}, {}', (itemName, itemCode) => {
+    item.inputItemDetails(itemName, itemCode);
+});
+Then('I should see an error message, {}', (message) => {
+    item.errorMessage(message);
 
     item.deleteItemThruItemCode();
 });
