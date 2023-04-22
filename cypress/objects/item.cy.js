@@ -99,6 +99,19 @@ class Item {
         });
     }
 
+    deleteAllItemWithSameItemCode(itemCode) {
+        cy.get(selectors.itemCodeRow).each(($el, index) => {
+            var code=$el.text().trim();
+            if(code.includes(itemCode)) {
+                cy.log('Equal to the given code, will delete this.');
+                cy.get(selectors.button).eq(index).contains('Delete').click({ force: true });
+                cy.get(selectors.cofirmationButton).contains('Confirm').click({ force: true });
+            } else {
+                cy.log('Not equal to the given code, will not delete this.')
+            }
+        })
+    }
+
     triggerEditButton() {
         cy.task('getDataStorage').then((item) => {
             //cy.get(selectors.generalButton).eq(item.itemIndex).contains('Edit').click({force:true});
@@ -139,6 +152,20 @@ class Item {
                 expect(itemcode).to.eq(item.itemCode);
             });
         });
+    }
+
+    inputSearch(data) {
+        cy.get(selectors.searchBar).clear().type(data);
+    }
+
+    tableCodeOnlyEqualToParam(data) {
+        if(this.inputSearch(data)) {
+            cy.get(selectors.itemCodeRow).each(($el, index) => {
+                var text= $el.text().trim();
+                cy.get($el).eq(index).should('contain.text', data);
+            })
+        }
+
     }
 
 

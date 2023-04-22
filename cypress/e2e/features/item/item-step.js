@@ -41,6 +41,16 @@ Then('the item should be added on the table', () => {
     item.deleteItemThruItemCode();
 });
 
+//Scenario Outline: Newly created item should be searchable
+When('I search the item thru its code, {}', (itemCode) => {
+    item.inputSearch(itemCode);
+});
+Then('the table should be filtered based on the entered data, {}', (itemCode) => {
+    item.validateModalNotVisible();
+    item.tableCodeOnlyEqualToParam(itemCode);
+
+    item.deleteAllItemWithSameItemCode(itemCode);
+});
 //Scenario Outline: I should be able to  update Item
 Given('the user has existing item, {}, {}', (itemName, itemCode) => {
     item.triggerCreateButton();
@@ -60,6 +70,22 @@ Then('the new details should reflect on the table', () => {
     item.validateItemUpdateData();
 
     item.deleteItemThruItemCode();
+});
+
+//Scenario Outline: I should not be be able to update Item when the new item code already used with other item
+Given('the user has two item, {}, {}, {}, {}', (itemName1, itemCode1, itemName2, itemCode2) => {
+    item.triggerCreateButton();
+    item.inputItemDetails(itemName1, itemCode1);
+    item.triggerSubmit();
+
+    item.validateModalNotVisible();
+
+    item.triggerCreateButton();
+    item.inputItemDetails(itemName2, itemCode2);
+    item.triggerSubmit();
+
+    item.validateModalNotVisible();
+    item.getItemIndexThruCode();
 });
 
 //Scenario Outline: I should be able to delete an Item
@@ -87,5 +113,6 @@ When('I enter the same details with the existing item, {}, {}', (itemName, itemC
 Then('I should see an error message, {}', (message) => {
     item.errorMessage(message);
 
-    item.deleteItemThruItemCode();
+    //item.deleteItemThruItemCode();
+    item.deleteAllItemWithSameItemCode('Test Item Code');
 });

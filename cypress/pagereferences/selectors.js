@@ -9,6 +9,7 @@ export const selectors = {
     //input
     inputItemName: 'input[name="item_name"]',
     inputItemCode: 'input[name="item_code"]',
+    searchBar:'input[name="searchInput-global"]',
 
     //display
     successMessage: '.text-green-800',
