@@ -52,7 +52,7 @@ Then('the table should be filtered based on the entered data, {}', (itemCode) =>
     item.deleteAllItemWithSameItemCode(itemCode);
 });
 //Scenario Outline: I should be able to  update Item
-Given('the user has existing item, {}, {}', (itemName, itemCode) => {
+Given('there is an existing item, {}, {}', (itemName, itemCode) => {
     item.triggerCreateButton();
     item.inputItemDetails(itemName, itemCode);
     item.triggerSubmit();
@@ -73,7 +73,7 @@ Then('the new details should reflect on the table', () => {
 });
 
 //Scenario Outline: I should not be be able to update Item when the new item code already used with other item
-Given('the user has two item, {}, {}, {}, {}', (itemName1, itemCode1, itemName2, itemCode2) => {
+Given('there are two item, {}, {}, {}, {}', (itemName1, itemCode1, itemName2, itemCode2) => {
     item.triggerCreateButton();
     item.inputItemDetails(itemName1, itemCode1);
     item.triggerSubmit();
@@ -115,4 +115,54 @@ Then('I should see an error message, {}', (message) => {
 
     //item.deleteItemThruItemCode();
     item.deleteAllItemWithSameItemCode('Test Item Code');
+});
+//Scenario Outline: I should be able to restore deleted item
+Given('the item with this code does not exist on item table, {}', (itemCode) => {
+    item.navigateItemPage();
+
+    item.isDataExist('', itemCode);
+    item.setDataNotExistInItem();
+
+})
+Given('I navigated to Item page > Deleted Item', () => {
+    item.navigateItemPage();
+
+    item.navigateToDeletedItem();
+    item.assertHeaderTwo('Deleted Item');
+});
+Given('there is an existing deleted item, {}, {}', (itemName, itemCode) => {
+    item.storeData(itemName, itemCode);
+    item.isDataExist(itemName, itemCode);
+
+    item.setDataExistInDeletedItem();
+});
+When('I restore the item', () => {
+    item.restoreDeletedItemThruIndex();
+});
+Then ('I should see the restored item in the table of item page', () => {
+    item.navigateItemPage();
+    item.assertUrlItemPage();
+    item.assertHeaderTwo('Item');
+
+    item.itemIsVisibleOnTable();
+});
+
+//Scenario Outline: I should see an error when restoring an item that code is already existing on item table
+Given('the item with this code does exist on item table, {}, {}', (itemName, itemCode) => {
+    item.navigateItemPage();
+
+    item.isDataExist('', itemCode);
+    item.setDataToExistInItem();
+});
+Then('I should see an error message saying the code already exist on database, {}', (message) => {
+    item.errorMessage(message);
+});
+
+
+//Scenario: A message 'There are no items to show.' should be displayed when the data entered on the search bar does not matched to data stored on database
+When('I enter a data on the search bar, {}', (data) => {
+    item.inputSearch(data);
+});
+Then ("I should see a message 'There are no items to show.'", () => {
+    item.tableNoItemToShow();
 });

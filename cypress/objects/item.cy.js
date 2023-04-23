@@ -3,7 +3,11 @@ var item = {
     itemName: null,
     itemCode: null,
     itemIndex: null,
+    isDataExists: false,
+    searchData:null,
 }
+let isDataExist = false;
+let isDataRestored = false;
 class Item {
     storeData(itemName, itemCode) {
         item.itemName = itemName;
@@ -11,6 +15,10 @@ class Item {
     }
     navigateItemPage() {
         cy.get(selectors.navLink).contains('Item').click({ force: true });
+    }
+
+    assertUrlItemPage() {
+        cy.url().should('eq', 'http://127.0.0.1:8000/item')
     }
 
     navigateToDeletedItem() {
@@ -101,8 +109,8 @@ class Item {
 
     deleteAllItemWithSameItemCode(itemCode) {
         cy.get(selectors.itemCodeRow).each(($el, index) => {
-            var code=$el.text().trim();
-            if(code.includes(itemCode)) {
+            var code = $el.text().trim();
+            if (code.includes(itemCode)) {
                 cy.log('Equal to the given code, will delete this.');
                 cy.get(selectors.button).eq(index).contains('Delete').click({ force: true });
                 cy.get(selectors.cofirmationButton).contains('Confirm').click({ force: true });
@@ -156,16 +164,105 @@ class Item {
 
     inputSearch(data) {
         cy.get(selectors.searchBar).clear().type(data);
+        item.searchData = data;
     }
 
     tableCodeOnlyEqualToParam(data) {
-        if(this.inputSearch(data)) {
+        if (this.inputSearch(data)) {
             cy.get(selectors.itemCodeRow).each(($el, index) => {
-                var text= $el.text().trim();
+                var text = $el.text().trim();
                 cy.get($el).eq(index).should('contain.text', data);
             })
         }
+    }
 
+    tableNoItemToShow() {
+        cy.get(selectors.searchBar).invoke('val').then((data) => {
+            expect(data).to.eq(item.searchData);
+        }).then(()=>{
+            cy.get(selectors.itemTableRow).within(() => {
+                cy.get('p').contains('There are no items to show.').should('be.visible');
+            })
+        })
+    }
+
+    isDataExist(itemName, itemCode) {
+        cy.get(selectors.itemCodeRow).each(($el, index) => {
+            var code = $el.text().trim();
+            if (code == itemCode) {
+                cy.log('item found');
+                isDataExist = true;
+                cy.log('Data does exist, right? ' + isDataExist);
+                item.itemIndex = index;
+                item.isDataExists = true;
+                item.itemCode = code;
+                cy.get(selectors.itemNameRow).eq(index).invoke('text').then((itemname) => {
+                    var name = itemname.trim();
+                    cy.log('Item name: ' + name);
+                    item.itemName = name;
+                });
+                cy.task('setDataStorage', item);
+                return false;
+            }
+        })
+    }
+
+    setDataExistInDeletedItem() {
+        cy.task('getDataStorage').then((dataStored) => {
+            if (item.isDataExists == false) {
+                this.navigateItemPage();
+                this.triggerCreateButton();
+                this.inputItemDetails(item.itemName, item.itemCode);
+                this.triggerSubmit();
+
+                this.validateCreatedItem();
+                this.deleteItemThruItemCode();
+
+                this.navigateToDeletedItem();
+                this.isDataExist();
+                this.setDataExistInDeletedItem();
+
+            }
+        });
+    }
+
+    setDataNotExistInItem() {
+        cy.task('getDataStorage').then((dataStored) => {
+            if (item.isDataExists) {
+                this.deleteItemThruItemCode();
+                this.successMessage('Item was deleted successfully.');
+            }
+            else {
+                cy.log('Data not exist');
+            }
+        });
+    }
+
+    setDataToExistInItem() {
+        cy.task('getDataStorage').then((dataStored) => {
+            if (item.isDataExists) {
+                cy.log('Data exist');
+            }
+            else {
+                this.navigateItemPage();
+                this.triggerCreateButton();
+                this.inputItemDetails(item.itemName, item.itemCode);
+                this.triggerSubmit();
+
+                this.validateCreatedItem();
+
+                this.isDataExist();
+                this.setDataToExistInItem();
+            }
+        });
+    }
+
+    restoreDeletedItemThruIndex() {
+        cy.task('getDataStorage').then((dataStored) => {
+            cy.get(selectors.button).eq(item.itemIndex).contains('Restore').click({ force: true });
+            cy.get(selectors.cofirmationButton).contains('Confirm').click({ force: true });
+
+        })
     }
 
 

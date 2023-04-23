@@ -4,6 +4,7 @@ Feature: Item
 
         Given I am logged in as an Admin
         And I navigated to Item page
+        And the item with this code does not exist on item table, <itemCode>
         When I click the Create button
         And I enter the required details, <itemName>, <itemCode>
         And I click the Submit button
@@ -18,7 +19,7 @@ Feature: Item
 
         Given I am logged in as an Admin
         And I navigated to Item page
-        And the user has existing item, <itemName>, <itemCode>
+        And there is an existing item, <itemName>, <itemCode>
         When I search the item thru its code, <itemCode>
         Then the table should be filtered based on the entered data, <itemCode>
 
@@ -30,7 +31,7 @@ Feature: Item
 
         Given I am logged in as an Admin
         And I navigated to Item page
-        And the user has existing item, <itemName>, <itemCode>
+        And there is an existing item, <itemName>, <itemCode>
         And I click the Create button
         When I enter the same details with the existing item, <itemName>, <itemCode>
         And I click the Submit button
@@ -44,7 +45,7 @@ Feature: Item
 
         Given I am logged in as an Admin
         And I navigated to Item page
-        And the user has existing item, <itemName>, <itemCode>
+        And there is an existing item, <itemName>, <itemCode>
         When I click the edit button of the item
         And I enter the new details, <newItemName>, <newItemCode>
         And I click the Submit button
@@ -59,7 +60,7 @@ Feature: Item
 
         Given I am logged in as an Admin
         And I navigated to Item page
-        And the user has two item, <itemName1>, <itemCode1>, <itemName2>, <itemCode2>
+        And there are two item, <itemName1>, <itemCode1>, <itemName2>, <itemCode2>
         When I click the edit button of the item
         And I enter the new details, <itemName1>, <itemCode1>
         And I click the Submit button
@@ -73,7 +74,7 @@ Feature: Item
 
         Given I am logged in as an Admin
         And I navigated to Item page
-        And the user has existing item, <itemName>, <itemCode>
+        And there is an existing item, <itemName>, <itemCode>
         When I delete the item
         Then I should see a success message, <message>
         And the item should not be visible on the item table
@@ -86,7 +87,7 @@ Feature: Item
 
         Given I am logged in as an Admin
         And I navigated to Item page
-        And the user has existing item, <itemName>, <itemCode>
+        And there is an existing item, <itemName>, <itemCode>
         And I delete the item
         When I navigate to Delete Item page
         Then I should see the item I deleted
@@ -94,5 +95,42 @@ Feature: Item
         Examples:
             | itemName       | itemCode       |
             | Test Item Name | Test Item Code |
+
+    Scenario Outline: I should be able to restore deleted item
+
+        Given I am logged in as an Admin
+        And the item with this code does not exist on item table, <itemCode>
+        And I navigated to Item page > Deleted Item
+        And there is an existing deleted item, <itemName>, <itemCode>
+        When I restore the item
+        Then I should see the restored item in the table of item page
+
+        Examples:
+            | itemName       | itemCode       |
+            | Test Item Name | Test Item Code |
+
+    Scenario Outline: I should see an error when restoring an item that code is already existing on item table
+
+        Given I am logged in as an Admin
+        And the item with this code does exist on item table, <itemName>, <itemCode>
+        And I navigated to Item page > Deleted Item
+        And there is an existing deleted item, <itemName>, <itemCode>
+        When I restore the item
+        Then I should see an error message saying the code already exist on database, <message>
+
+        Examples:
+            | itemName       | itemCode       | message |
+            | Test Item Name | Test Item Code | Item with the same code does exist on database.|
+
+    Scenario Outline: A message 'There are no items to show.' should be displayed when the data entered on the search bar does not matched to data stored on database
+
+        Given I am logged in as an Admin
+        And I navigated to Item page
+        When I enter a data on the search bar, <data>
+        Then I should see a message 'There are no items to show.'
+
+        Examples:
+            |data|
+            |12as|
 
 
