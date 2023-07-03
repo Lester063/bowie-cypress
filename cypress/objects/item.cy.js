@@ -17,8 +17,27 @@ class Item {
         cy.get(selectors.navLink).contains('Item').click({ force: true });
     }
 
+    navigateAvailableItemPage(){
+        cy.get(selectors.navLink).contains('Available Item').click({ force: true });
+    }
+    //admin
+    navigateRequestPage() {
+        cy.get(selectors.navLink).contains('Request').click({ force: true });
+    }
+    assertRequestPage() {
+        cy.url().should('eq', 'http://127.0.0.1:8000/request');
+    }
+
+    assertAvailableItemPage() {
+        cy.url().should('eq', 'http://127.0.0.1:8000/availableitem');
+    }
+
     assertUrlItemPage() {
         cy.url().should('eq', 'http://127.0.0.1:8000/item')
+    }
+
+    assertUserRequestPage() {
+        cy.url().should('eq', 'http://127.0.0.1:8000/userrequest');
     }
 
     navigateToDeletedItem() {
@@ -31,6 +50,10 @@ class Item {
 
     triggerCreateButton() {
         cy.get(selectors.generalButton).contains('Create').click({ force: true });
+    }
+
+    triggerCreateButtonNoForce() {
+        cy.get(selectors.generalButton).contains('Create').click({ timeout: 1000 });
     }
 
     inputItemDetails(itemName, itemCode) {
@@ -263,6 +286,55 @@ class Item {
             cy.get(selectors.cofirmationButton).contains('Confirm').click({ force: true });
 
         })
+    }
+
+    createItem(itemName, itemCode) {
+        cy.get(selectors.itemTableRow).invoke('text').then((text) => {
+            if (text.includes('There are no items to show.')) {
+                cy.log('No item, proceed.')
+            }
+            else {
+                cy.log('There is an item.');
+                this.deleteAllItemWithSameItemCode(itemCode);
+            }
+        }).then(() => {
+            this.triggerCreateButtonNoForce();
+            this.validateModalVisible();
+            this.inputItemDetails(itemName, itemCode);
+            this.triggerSubmit();
+            this.successMessage('Item added successfully.');
+        })
+    }
+
+    userLogout(){
+        cy.get('button.flex').click({force:true}).then(()=>{
+            cy.get('a').contains('Log Out').click({force:true});
+        });
+        //cy.clearLocalStorage()
+        cy.clearCookies()
+    }
+
+    requestItem() {
+        cy.task('getDataStorage').then((item)=>{
+            cy.get(selectors.itemCodeRow).each(($el, index)=>{
+                var code = $el.text().trim();
+                if(code==item.itemCode){
+                    cy.get(selectors.button).eq(index).contains('Request').click();
+                }
+            })
+        });
+    }
+
+    deleteRequest(){
+        cy.task('getDataStorage').then((item)=>{
+            cy.get(selectors.thirdRow).each(($el, index)=>{
+                var code = $el.text().trim();
+                if(code==item.itemCode){
+                    cy.get(selectors.button).eq(index).contains('Delete').click({force:true});
+                    cy.get(selectors.cofirmationButton).contains('Confirm').click({ force: true });
+                }
+            })
+        });
     }
 
 

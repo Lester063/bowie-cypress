@@ -166,3 +166,63 @@ When('I enter a data on the search bar, {}', (data) => {
 Then ("I should see a message 'There are no items to show.'", () => {
     item.tableNoItemToShow();
 });
+
+
+//Scenario Outline: User should be able to request an item
+Given('there is an item Available', ()=> {
+    var email = 'lester@gmail.com';
+    var password = 'password';
+    cy.visit('http://127.0.0.1:8000/login');
+    login.enterCredentials(email, password)
+    login.clickLogin();
+    login.successLogin();
+
+    item.navigateItemPage();
+    var itemName='Test Request Item';
+    var itemCode='Test Request Code';
+    // item.deleteAllItemWithSameItemCode(itemCode)
+
+    // item.triggerCreateButton();
+    // item.validateModalVisible();
+
+    // item.inputItemDetails(itemName, itemCode);
+    // item.triggerSubmit();
+
+    item.createItem(itemName, itemCode);
+    item.userLogout();
+
+})
+Given('I am logged in as a User', () => {
+    var email = 'automation@gmail.com';
+    var password = 'password';
+    cy.visit('http://127.0.0.1:8000/login');
+    login.enterCredentials(email, password)
+    login.clickLogin();
+    login.successLogin();
+});
+Given('I navigated to Available Item page', () => {
+    item.navigateAvailableItemPage();
+    item.assertAvailableItemPage();
+});
+When('I click the request', () => {
+    item.requestItem();
+});
+Then('the success message should be displayed', () => {
+    item.successMessage('Request added successfully');
+});
+Then('I will be navigated to my request item page', () => {
+    item.assertUserRequestPage();
+
+    //login admin to delete request
+    item.userLogout();
+    var email = 'lester@gmail.com';
+    var password = 'password';
+    cy.visit('http://127.0.0.1:8000/login');
+    login.enterCredentials(email, password)
+    login.clickLogin();
+    login.successLogin();
+
+    item.navigateRequestPage();
+    item.assertRequestPage();
+    item.deleteRequest();
+});

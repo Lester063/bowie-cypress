@@ -21,4 +21,5 @@ export const selectors = {
     itemCodeRow: 'tbody > tr > td:nth-child(2)',
     itemActionRow: 'tbody > tr > td:nth-child(4)',
     itemTableRow: 'tbody',
+    thirdRow:'tbody > tr > td:nth-child(3)',
 }
