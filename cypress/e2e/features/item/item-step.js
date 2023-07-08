@@ -139,23 +139,38 @@ Given('there is an existing deleted item, {}, {}', (itemName, itemCode) => {
 When('I restore the item', () => {
     item.restoreDeletedItemThruIndex();
 });
-Then ('I should see the restored item in the table of item page', () => {
+Then('I should see the restored item in the table of item page', () => {
     item.navigateItemPage();
     item.assertUrlItemPage();
     item.assertHeaderTwo('Item');
 
     item.itemIsVisibleOnTable();
+
+
+    item.navigateItemPage();
+    item.assertUrlItemPage();
+    item.assertHeaderTwo('Item');
+    item.getItemIndexThruCode();
+    item.deleteItemThruItemCode();
 });
 
 //Scenario Outline: I should see an error when restoring an item that code is already existing on item table
 Given('the item with this code does exist on item table, {}, {}', (itemName, itemCode) => {
     item.navigateItemPage();
+    item.assertUrlItemPage();
+    item.assertHeaderTwo('Item');
 
-    item.isDataExist('', itemCode);
+    item.isDataExist(itemName, itemCode);
     item.setDataToExistInItem();
 });
 Then('I should see an error message saying the code already exist on database, {}', (message) => {
     item.errorMessage(message);
+
+    item.navigateItemPage();
+    item.assertUrlItemPage();
+    item.assertHeaderTwo('Item');
+    item.getItemIndexThruCode();
+    item.deleteItemThruItemCode();
 });
 
 
@@ -180,13 +195,6 @@ Given('there is an item Available', ()=> {
     item.navigateItemPage();
     var itemName='Test Request Item';
     var itemCode='Test Request Code';
-    // item.deleteAllItemWithSameItemCode(itemCode)
-
-    // item.triggerCreateButton();
-    // item.validateModalVisible();
-
-    // item.inputItemDetails(itemName, itemCode);
-    // item.triggerSubmit();
 
     item.createItem(itemName, itemCode);
     item.userLogout();
@@ -225,4 +233,10 @@ Then('I will be navigated to my request item page', () => {
     item.navigateRequestPage();
     item.assertRequestPage();
     item.deleteRequest();
+
+    item.navigateItemPage();
+    item.assertUrlItemPage();
+    item.assertHeaderTwo('Item');
+    item.getItemIndexThruCode();
+    item.deleteItemThruItemCode();
 });

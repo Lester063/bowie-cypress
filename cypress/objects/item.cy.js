@@ -14,7 +14,7 @@ class Item {
         item.itemCode = itemCode;
     }
     navigateItemPage() {
-        cy.get(selectors.navLink).contains('Item').click({ force: true });
+        cy.get(selectors.navLink).contains('Item').click({ timeout:1000 });
     }
 
     navigateAvailableItemPage(){
@@ -160,16 +160,24 @@ class Item {
     }
 
     itemIsNotVisibleOnTable() {
-        cy.task('getDataStorage').then((item) => {
-            cy.get(selectors.itemNameRow).eq(item.itemIndex).invoke('text').then((text) => {
-                var itemname = text.trim();
-                expect(itemname).not.to.eq(item.itemName);
-            });
-            cy.get(selectors.itemCodeRow).eq(item.itemIndex).invoke('text').then((text) => {
-                var itemcode = text.trim();
-                expect(itemcode).not.to.eq(item.itemCode);
-            });
-        });
+        cy.get(selectors.itemTableRow).invoke('text').then((text) => {
+            if (text.includes('There are no items to show.')) {
+                cy.get(selectors.itemTableRow).contains('There are no items to show.').should('be.visible');
+                return false;
+            }
+            else {
+                cy.task('getDataStorage').then((item) => {
+                    cy.get(selectors.itemNameRow).eq(item.itemIndex).invoke('text').then((text) => {
+                        var itemname = text.trim();
+                        expect(itemname).not.to.eq(item.itemName);
+                    });
+                    cy.get(selectors.itemCodeRow).eq(item.itemIndex).invoke('text').then((text) => {
+                        var itemcode = text.trim();
+                        expect(itemcode).not.to.eq(item.itemCode);
+                    });
+                });
+            }
+        })
     }
 
     itemIsVisibleOnTable() {
@@ -210,22 +218,34 @@ class Item {
     }
 
     isDataExist(itemName, itemCode) {
-        cy.get(selectors.itemCodeRow).each(($el, index) => {
-            var code = $el.text().trim();
-            if (code == itemCode) {
-                cy.log('item found');
-                isDataExist = true;
-                cy.log('Data does exist, right? ' + isDataExist);
-                item.itemIndex = index;
-                item.isDataExists = true;
-                item.itemCode = code;
-                cy.get(selectors.itemNameRow).eq(index).invoke('text').then((itemname) => {
-                    var name = itemname.trim();
-                    cy.log('Item name: ' + name);
-                    item.itemName = name;
-                });
-                cy.task('setDataStorage', item);
+        cy.get(selectors.itemTableRow).invoke('text').then((text) => {
+            if (text.includes('There are no items to show.')) {
                 return false;
+            }
+            else {
+                cy.get(selectors.itemCodeRow).each(($el, index) => {
+                    var code = $el.text().trim();
+                    if (code == itemCode) {
+                        cy.log('item found');
+                        isDataExist = true;
+                        cy.log('Data does exist, right? ' + isDataExist);
+                        item.itemIndex = index;
+                        item.isDataExists = true;
+                        item.itemCode = code;
+                        cy.get(selectors.itemNameRow).eq(index).invoke('text').then((itemname) => {
+                            var name = itemname.trim();
+                            cy.log('Item name: ' + name);
+                            item.itemName = name;
+                        });
+                        cy.task('setDataStorage', item);
+                        return false;
+                    }
+                }).then(()=>{
+                    if(item.isDataExists==false){
+                        item.itemName = itemName;
+                        item.itemCode = itemCode;
+                    }
+                })
             }
         })
     }
@@ -243,17 +263,25 @@ class Item {
 
                 this.navigateToDeletedItem();
                 this.isDataExist();
+
                 this.setDataExistInDeletedItem();
 
             }
+        }).then(()=>{
+            item.isDataExists = false;
+            cy.task('setDataStorage', item);
+            return false;
         });
     }
 
     setDataNotExistInItem() {
         cy.task('getDataStorage').then((dataStored) => {
-            if (item.isDataExists) {
+            if (item.isDataExists==true) {
                 this.deleteItemThruItemCode();
                 this.successMessage('Item was deleted successfully.');
+                item.isDataExists = false;
+                cy.task('setDataStorage', item);
+                return false;
             }
             else {
                 cy.log('Data not exist');
@@ -262,11 +290,14 @@ class Item {
     }
 
     setDataToExistInItem() {
+        cy.log('Exist? '+item.isDataExists);
         cy.task('getDataStorage').then((dataStored) => {
-            if (item.isDataExists) {
+            if (item.isDataExists==true) {
                 cy.log('Data exist');
+                return false;
             }
             else {
+                cy.log('Data does not exist');
                 this.navigateItemPage();
                 this.triggerCreateButton();
                 this.inputItemDetails(item.itemName, item.itemCode);
@@ -274,7 +305,8 @@ class Item {
 
                 this.validateCreatedItem();
 
-                this.isDataExist();
+                // this.isDataExist();
+                item.isDataExists=true;
                 this.setDataToExistInItem();
             }
         });
@@ -330,8 +362,8 @@ class Item {
             cy.get(selectors.thirdRow).each(($el, index)=>{
                 var code = $el.text().trim();
                 if(code==item.itemCode){
-                    cy.get(selectors.button).eq(index).contains('Delete').click({force:true});
-                    cy.get(selectors.cofirmationButton).contains('Confirm').click({ force: true });
+                    cy.get(selectors.button).eq(index).contains('Delete').click({ force: true,timeout:300 });
+                    cy.get(selectors.cofirmationButton).contains('Confirm').click({ force: true,timeout:300 });
                 }
             })
         });

@@ -142,3 +142,12 @@ Feature: Item
         Then the success message should be displayed
         And I will be navigated to my request item page
 
+    # Scenario Outline: Admin should be able to approved a request
+
+    #     Given there is an item Available
+    #     And I am logged in as a User
+    #     And I navigated to Available Item page
+    #     When I click the request
+    #     Then the success message should be displayed
+    #     And I will be navigated to my request item page
+
