@@ -1,5 +1,17 @@
 Feature: Item
 
+    Scenario Outline: I should be able to logged in as an Admin
+
+        Given I am on the login page
+        When I enter my credentials, '<email>' '<password>'
+        And I click the login button
+        Then I should be able to login successfully
+
+        Examples:
+            |email|password|
+            |lester@gmail.com|password|
+            |test1@gmail.com|password|
+
     Scenario Outline: I should be able to add Item
 
         Given I am logged in as an Admin
@@ -133,7 +145,7 @@ Feature: Item
             |data|
             |12as|
 
-    Scenario Outline: User should be able to request an item
+    Scenario: User should be able to request an item
 
         Given there is an item Available
         And I am logged in as a User
@@ -142,12 +154,18 @@ Feature: Item
         Then the success message should be displayed
         And I will be navigated to my request item page
 
-    # Scenario Outline: Admin should be able to approved a request
+    Scenario Outline: Admin should be able to approved a request
 
-    #     Given there is an item Available
-    #     And I am logged in as a User
-    #     And I navigated to Available Item page
-    #     When I click the request
-    #     Then the success message should be displayed
-    #     And I will be navigated to my request item page
+        Given there is an existing request
+        And I am logged in as an Admin
+        And I navigated to Request page
+        When I click the Edit button of the request
+        And I select the PROCESSED
+        And I click Submit
+        Then I should see a success message, <message>
+        And the status should be change to PROCESSED
+
+        Examples:
+            |message|
+            |Request updated successfully|
 

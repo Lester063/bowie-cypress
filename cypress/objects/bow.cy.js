@@ -12,6 +12,7 @@ class Item {
     storeData(itemName, itemCode) {
         item.itemName = itemName;
         item.itemCode = itemCode;
+        cy.task('setDataStorage',item);
     }
     navigateItemPage() {
         cy.get(selectors.navLink).contains('Item').click({ timeout:1000 });
@@ -143,13 +144,21 @@ class Item {
         })
     }
 
-    triggerEditButton() {
-        cy.task('getDataStorage').then((item) => {
-            //cy.get(selectors.generalButton).eq(item.itemIndex).contains('Edit').click({force:true});
-            cy.get(selectors.itemActionRow).eq(item.itemIndex).within(() => {
-                cy.contains('Edit').click({ force: true });
-            })
-        });
+    triggerEditButton(page) {
+        if(page){
+            cy.task('getDataStorage').then((item) => {
+                cy.get(selectors.tableDataFive).eq(item.itemIndex).within(() => {
+                    cy.contains('Edit').click({ force: true });
+                })
+            });
+        }
+        else {
+            cy.task('getDataStorage').then((item) => {
+                cy.get(selectors.itemActionRow).eq(item.itemIndex).within(() => {
+                    cy.contains('Edit').click({ force: true });
+                })
+            });
+        }
     }
 
     validateItemUpdateData() {
@@ -339,7 +348,7 @@ class Item {
     }
 
     userLogout(){
-        cy.get('button.flex').click({force:true}).then(()=>{
+        cy.get(selectors.optionProfile).click({force:true}).then(()=>{
             cy.get('a').contains('Log Out').click({force:true});
         });
         //cy.clearLocalStorage()
@@ -369,6 +378,33 @@ class Item {
         });
     }
 
+    loginUser(email, password) {
+        cy.visit('http://127.0.0.1:8000/login');
+        this.enterCredentials(email, password)
+        this.clickLogin();
+        this.successLogin();
+    }
+
+    selectStatusOption(option) {
+        cy.get(selectors.selectStatus).select(option);
+    }
+
+    assertRequestStatus(status) {
+        if(status=='PROCESSED') {
+            cy.get(selectors.greenButton).contains(status).should('be.visible');
+        }
+    }
+
+    enterCredentials(email,password){
+        cy.get(selectors.inputEmail).clear().type(email);
+        cy.get(selectors.inputPassword).clear().type(password);
+    } 
+    clickLogin(){
+        cy.get(selectors.button).click({force:true});
+    }
+    successLogin(){
+        cy.url().should('eq', 'http://127.0.0.1:8000/dashboard')
+    }
 
 }
 
